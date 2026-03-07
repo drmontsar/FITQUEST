@@ -1,46 +1,78 @@
-# 💪 FitQuest — Gamified Fitness Tracker
+# 💪 FitQuest — Level Up Your Body
 
-A mobile-first PWA fitness tracker with XP, streaks, ranks, and multi-user support.
+Turn your fitness journey into a game. Earn XP, build streaks, unlock ranks and track your weight loss — one day at a time.
 
-## Features
-- 👤 Multi-user profiles (anyone can create their own account)
-- 🔥 Daily streak tracking
-- ⚔️ 6 ranks to unlock (Couch Warrior → Bangalore Alpha)
-- 💛 XP for workouts + daily habits
-- ⚖️ Weight logging with history
-- 🍽️ Personalised meal plan based on your stats
-- 📱 Installable as a PWA (Add to Home Screen)
+-----
 
-## Deploy to Vercel (Free, 5 minutes)
+## 🚀 Getting Started
 
-### Option A: Vercel CLI
-```bash
-npm install -g vercel
-cd fitquest
-npm install
-vercel
-```
-Follow the prompts. Your app will be live at `yourname.vercel.app`
+1. Open the app link on your phone
+1. Enter your name, current weight and height
+1. Pick your goal
+1. That’s it — your quest begins
 
-### Option B: Vercel Website (No coding needed)
-1. Go to https://vercel.com and sign up free
-2. Click "Add New Project"
-3. Upload this folder or connect your GitHub repo
-4. Click Deploy — done!
+-----
 
-### Option C: Netlify
-1. Go to https://netlify.com
-2. Drag and drop the `build/` folder (after running `npm run build`)
-3. Your app is live instantly
+## 📅 Every Day
 
-## Local Development
-```bash
-npm install
-npm start
-```
+**Mark your workout done** — tap the big button on the Today tab to log your session and earn XP.
 
-## Tech Stack
-- React 18
-- localStorage for per-user data persistence
-- PWA manifest for installability
-- No backend needed — fully client-side
+**Tick off your habits** — earn bonus XP for hitting your protein, drinking enough water, sleeping well, avoiding junk food and getting your steps in.
+
+**Log your weight** — enter your weight each morning (after waking up, before eating) to track your progress over time.
+
+-----
+
+## 🎮 How XP & Ranks Work
+
+Every action earns you XP points. Stack enough XP and you rank up.
+
+|Action                    |XP  |
+|--------------------------|----|
+|Workout (Push/Pull)       |+100|
+|Workout (Legs / Deadlifts)|+120|
+|Rest / Walk day           |+30 |
+|Hit protein goal          |+30 |
+|Sleep 7–8 hours           |+25 |
+|Drink 3–4L water          |+20 |
+|No junk food              |+20 |
+|10,000+ steps             |+15 |
+
+### Rank Ladder
+
+| |Rank           |XP Needed|
+|-|---------------|---------|
+|🛋️|Couch Warrior  |0        |
+|🌱|Gym Newbie     |500      |
+|⚡|Iron Beginner  |1,500    |
+|💜|Grind Mode     |3,000    |
+|🔥|Beast Mode     |5,000    |
+|👑|Bangalore Alpha|8,000    |
+
+-----
+
+## 📱 Install on Your Phone
+
+You can add FitQuest to your home screen so it opens like a real app — no App Store needed.
+
+**Android:**
+Open the link in Chrome → tap the three-dot menu (⋮) → tap *Add to Home Screen*
+
+**iPhone:**
+Open the link in Safari → tap the Share button (□↑) → tap *Add to Home Screen*
+
+-----
+
+## 👥 Multiple Profiles
+
+Want your friend or partner to use the same app? Each person can create their own profile — just tap your name at the top and hit **+ New Profile**. Everyone’s data stays separate.
+
+-----
+
+## ⚠️ Important
+
+Your data is saved on **your device only**. If you clear your browser data or switch phones, your progress will be lost. Take a screenshot of your stats now and then to keep a record.
+
+-----
+
+*Start today. One workout at a time.* 💪
