@@ -427,24 +427,60 @@ const EXERCISE_DB = {
   "🟢 Cardio / Rest": [
     "Brisk Walk 30 min","Brisk Walk 45 min","Jog 20 min","Jog 30 min",
     "Cycling 30 min","Swimming 30 min","Jump Rope 15 min","Stairmaster 20 min",
-    "Stretching / Mobility","Yoga 30 min","Foam Rolling","Full Rest",
-    "Light Walk","Sleep 7-8 hours",
+    "Stretching / Mobility","Foam Rolling","Full Rest","Light Walk","Sleep 7-8 hours",
   ],
   "💪 Full Body": [
     "Clean and Press","Thrusters","Kettlebell Swings","Burpees","Turkish Get-ups",
     "Farmer Walks","Sled Push","Battle Ropes","Medicine Ball Slams",
+  ],
+  "🤸 Calisthenics": [
+    "Push-ups","Diamond Push-ups","Wide Push-ups","Archer Push-ups","Pike Push-ups",
+    "Pull-ups","Chin-ups","Australian Rows","Dips","Tricep Dips",
+    "Bodyweight Squats","Jump Squats","Pistol Squats","Bulgarian Split Squats",
+    "Lunges","Reverse Lunges","Glute Bridges","Single Leg Glute Bridge",
+    "Plank","Side Plank","Hollow Body Hold","L-Sit",
+    "Hanging Knee Raises","Leg Raises","V-Ups","Mountain Climbers",
+    "Burpees","Bear Crawl","Inchworm","Superman Hold",
+    "Muscle-up","Handstand Hold","Handstand Push-ups","Human Flag Progression",
+  ],
+  "🧘 Yoga": [
+    "Sun Salutation A","Sun Salutation B","Warrior I","Warrior II","Warrior III",
+    "Triangle Pose","Extended Side Angle","Half Moon Pose","Chair Pose",
+    "Downward Dog","Upward Dog","Cobra","Locust Pose","Bow Pose",
+    "Child's Pose","Pigeon Pose","Seated Forward Fold","Seated Twist",
+    "Bridge Pose","Wheel Pose","Camel Pose","Fish Pose",
+    "Tree Pose","Eagle Pose","Dancer Pose","Standing Split",
+    "Shavasana 10 min","Yin Yoga 30 min","Restorative Yoga 30 min",
+    "Yoga Flow 20 min","Yoga Flow 45 min","Power Yoga 30 min",
+  ],
+  "🥊 Sports & Martial Arts": [
+    "Boxing Rounds 3x3 min","Shadow Boxing 15 min","Heavy Bag 20 min",
+    "Kickboxing 30 min","BJJ Drilling 30 min","Wrestling Practice",
+    "Badminton 30 min","Cricket Net Practice","Football Practice",
+    "Basketball 30 min","Swimming Laps 30 min","Cycling Outdoors 45 min",
+    "Rock Climbing 1 hr","Rowing 20 min","Skipping 15 min",
+  ],
+  "🧠 Mind & Recovery": [
+    "Meditation 10 min","Meditation 20 min","Breathwork 10 min","Pranayama 15 min",
+    "Foam Rolling 15 min","Mobility Flow 20 min","Cold Shower","Ice Bath",
+    "Full Body Stretch 20 min","Hip Mobility 15 min","Shoulder Mobility 15 min",
+    "Ankle Mobility 10 min","Sleep 7-8 hours","Nap 20 min","Rest Day",
   ],
 };
 
 const ALL_EXERCISES = Object.values(EXERCISE_DB).flat();
 
 const DAY_TYPES = [
-  { type: "PUSH",      emoji: "🔴", xp: 100, cat: "🔴 Push" },
-  { type: "PULL",      emoji: "🔵", xp: 100, cat: "🔵 Pull" },
-  { type: "LEGS",      emoji: "🟡", xp: 120, cat: "🟡 Legs" },
-  { type: "FULL BODY", emoji: "💪", xp: 120, cat: "💪 Full Body" },
-  { type: "CARDIO",    emoji: "🏃", xp: 60,  cat: "🟢 Cardio / Rest" },
-  { type: "REST",      emoji: "🟢", xp: 30,  cat: "🟢 Cardio / Rest" },
+  { type: "PUSH",         emoji: "🔴", xp: 100, cat: "🔴 Push" },
+  { type: "PULL",         emoji: "🔵", xp: 100, cat: "🔵 Pull" },
+  { type: "LEGS",         emoji: "🟡", xp: 120, cat: "🟡 Legs" },
+  { type: "FULL BODY",    emoji: "💪", xp: 120, cat: "💪 Full Body" },
+  { type: "CALISTHENICS", emoji: "🤸", xp: 100, cat: "🤸 Calisthenics" },
+  { type: "YOGA",         emoji: "🧘", xp: 60,  cat: "🧘 Yoga" },
+  { type: "SPORT",        emoji: "🥊", xp: 80,  cat: "🥊 Sports & Martial Arts" },
+  { type: "RECOVERY",     emoji: "🧠", xp: 40,  cat: "🧠 Mind & Recovery" },
+  { type: "CARDIO",       emoji: "🏃", xp: 60,  cat: "🟢 Cardio / Rest" },
+  { type: "REST",         emoji: "🟢", xp: 30,  cat: "🟢 Cardio / Rest" },
 ];
 
 // ─── Plan Editor Component ────────────────────────────────────────────────────
