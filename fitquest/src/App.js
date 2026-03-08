@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useCallback } from "react";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -418,15 +417,32 @@ function ProgressPhotos({ user, save, rank }) {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = (ev) => {
-      const entry = {
-        id: Date.now(),
-        date: new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
-        dateRaw: new Date().toISOString().split("T")[0],
-        view: selectedView,
-        img: ev.target.result,
-        weight: user.weightLog?.slice(-1)[0]?.weight || user.startWeight,
+      const img = new Image();
+      img.onload = () => {
+        // Compress: resize to max 400px wide, JPEG quality 0.6
+        const MAX = 400;
+        const scale = Math.min(1, MAX / img.width);
+        const canvas = document.createElement("canvas");
+        canvas.width = Math.round(img.width * scale);
+        canvas.height = Math.round(img.height * scale);
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+        const compressed = canvas.toDataURL("image/jpeg", 0.6);
+        const entry = {
+          id: Date.now(),
+          date: new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
+          dateRaw: new Date().toISOString().split("T")[0],
+          view: selectedView,
+          img: compressed,
+          weight: user.weightLog?.slice(-1)[0]?.weight || user.startWeight,
+        };
+        try {
+          save({ progressPhotos: [...photos, entry] });
+        } catch (err) {
+          alert("Storage full. Please delete some old photos to add new ones.");
+        }
       };
-      save({ progressPhotos: [...photos, entry] });
+      img.src = ev.target.result;
     };
     reader.readAsDataURL(file);
   }
