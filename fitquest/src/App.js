@@ -970,6 +970,178 @@ function ProgressPhotos({ user, save, rank }) {
   const first = filtered[0];
   const latest = filtered.length > 1 ? filtered[filtered.length - 1] : null;
 
+  async function shareProgressCard() {
+    if (!first) return;
+    const photo1 = first;
+    const photo2 = latest || first;
+    const lostKg = Math.max(0, photo1.weight - photo2.weight).toFixed(1);
+    const canvas = document.createElement("canvas");
+    // Instagram story size 9:16
+    canvas.width = 1080;
+    canvas.height = 1920;
+    const ctx = canvas.getContext("2d");
+
+    // Background
+    ctx.fillStyle = "#0A0A0F";
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+    // Gradient overlay top
+    const topGrad = ctx.createLinearGradient(0, 0, 0, 400);
+    topGrad.addColorStop(0, "rgba(123,104,238,0.3)");
+    topGrad.addColorStop(1, "rgba(0,0,0,0)");
+    ctx.fillStyle = topGrad;
+    ctx.fillRect(0, 0, canvas.width, 400);
+
+    // Helper to load image
+    function loadImg(src) {
+      return new Promise((res, rej) => {
+        const i = new Image();
+        i.onload = () => res(i);
+        i.onerror = rej;
+        i.src = src;
+      });
+    }
+
+    // Draw photos side by side
+    const photoY = 280;
+    const photoH = 900;
+    const photoW = 490;
+    const gap = 20;
+    const leftX = 40;
+    const rightX = leftX + photoW + gap;
+
+    try {
+      const img1 = await loadImg(photo1.img);
+      const img2 = await loadImg(photo2.img);
+
+      // Rounded rect clip for left photo
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(leftX, photoY, photoW, photoH, 20);
+      ctx.clip();
+      ctx.drawImage(img1, leftX, photoY, photoW, photoH);
+      ctx.restore();
+
+      // Rounded rect clip for right photo
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(rightX, photoY, photoW, photoH, 20);
+      ctx.clip();
+      ctx.drawImage(img2, rightX, photoY, photoW, photoH);
+      ctx.restore();
+    } catch(e) {}
+
+    // Dark gradient over bottom of photos
+    const photoGrad = ctx.createLinearGradient(0, photoY + photoH - 200, 0, photoY + photoH);
+    photoGrad.addColorStop(0, "rgba(0,0,0,0)");
+    photoGrad.addColorStop(1, "rgba(10,10,15,0.95)");
+    ctx.fillStyle = photoGrad;
+    ctx.fillRect(leftX, photoY, photoW + photoW + gap, photoH);
+
+    // BEFORE / NOW labels
+    ctx.font = "bold 36px Arial";
+    ctx.fillStyle = "#888888";
+    ctx.textAlign = "center";
+    ctx.fillText("BEFORE", leftX + photoW / 2, photoY + 50);
+    ctx.fillStyle = rank.color;
+    ctx.fillText("NOW", rightX + photoW / 2, photoY + 50);
+
+    // Dates under photos
+    ctx.font = "32px Arial";
+    ctx.fillStyle = "#666666";
+    ctx.textAlign = "center";
+    ctx.fillText(photo1.date, leftX + photoW / 2, photoY + photoH + 50);
+    ctx.fillText(photo2.date, rightX + photoW / 2, photoY + photoH + 50);
+
+    // Stats section
+    const statsY = photoY + photoH + 100;
+
+    // Lost kg — big number
+    if (parseFloat(lostKg) > 0) {
+      ctx.font = "bold 130px Arial";
+      ctx.fillStyle = "#2ECC71";
+      ctx.textAlign = "center";
+      ctx.fillText("-" + lostKg + "kg", canvas.width / 2, statsY + 120);
+      ctx.font = "bold 44px Arial";
+      ctx.fillStyle = "#555555";
+      ctx.fillText("LOST SO FAR", canvas.width / 2, statsY + 180);
+    }
+
+    // Divider line
+    ctx.strokeStyle = "#1E1E2E";
+    ctx.lineWidth = 2;
+    ctx.beginPath();
+    ctx.moveTo(80, statsY + 220);
+    ctx.lineTo(canvas.width - 80, statsY + 220);
+    ctx.stroke();
+
+    // AURA and streak stats
+    const stat1X = canvas.width / 4;
+    const stat2X = (canvas.width / 4) * 3;
+    const statY2 = statsY + 340;
+
+    ctx.font = "bold 80px Arial";
+    ctx.fillStyle = "#FFD700";
+    ctx.textAlign = "center";
+    ctx.fillText(user.xp, stat1X, statY2);
+    ctx.font = "bold 32px Arial";
+    ctx.fillStyle = "#555555";
+    ctx.fillText("AURA", stat1X, statY2 + 50);
+
+    ctx.font = "bold 80px Arial";
+    ctx.fillStyle = "#FF6B35";
+    ctx.fillText(user.streak, stat2X, statY2);
+    ctx.font = "bold 32px Arial";
+    ctx.fillStyle = "#555555";
+    ctx.fillText("DAY STREAK", stat2X, statY2 + 50);
+
+    // Rank badge area
+    const rankY = statY2 + 130;
+    ctx.font = "bold 44px Arial";
+    ctx.fillStyle = rank.color;
+    ctx.textAlign = "center";
+    ctx.fillText(rank.badge + "  " + rank.name.toUpperCase(), canvas.width / 2, rankY);
+
+    // FitQuest branding — top
+    ctx.font = "bold 52px Arial";
+    ctx.fillStyle = "#FFFFFF";
+    ctx.textAlign = "center";
+    ctx.fillText("💪 FITQUEST", canvas.width / 2, 120);
+    ctx.font = "32px Arial";
+    ctx.fillStyle = "#555555";
+    ctx.fillText(user.name + "'s Transformation", canvas.width / 2, 180);
+
+    // Bottom branding
+    ctx.font = "bold 34px Arial";
+    ctx.fillStyle = "#333333";
+    ctx.textAlign = "center";
+    ctx.fillText("Track your transformation at FitQuest", canvas.width / 2, canvas.height - 60);
+
+    // Export and share
+    canvas.toBlob(async (blob) => {
+      const file = new File([blob], "fitquest-progress.png", { type: "image/png" });
+      if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+        try {
+          await navigator.share({
+            files: [file],
+            title: "My FitQuest Transformation",
+            text: user.name + " lost " + lostKg + "kg on FitQuest! " + rank.badge + " " + rank.name,
+          });
+        } catch(e) {
+          // User cancelled — that's fine
+        }
+      } else {
+        // Fallback: download the image
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = "fitquest-progress.png";
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+    }, "image/png");
+  }
+
   return (
     <div style={S.col}>
 
@@ -999,6 +1171,13 @@ function ProgressPhotos({ user, save, rank }) {
           📷 Add {VIEW_LABELS[selectedView]} Photo
         </div>
       </label>
+
+      {/* Share progress card button — shown when at least 1 photo exists */}
+      {first && (
+        <button onClick={shareProgressCard} style={S.btn("linear-gradient(135deg,#E8921A,#C07010)")}>
+          🚀 Share My Progress
+        </button>
+      )}
 
       {/* Before / After comparison */}
       {first && latest && (
@@ -1213,6 +1392,11 @@ export default function App() {
   const [weightInput, setWeightInput] = useState("");
   const [showSwitcher, setShowSwitcher] = useState(false);
   const [allUsers, setAllUsers] = useState([]);
+  const [installPrompt, setInstallPrompt] = useState(null);
+  const [showInstallBanner, setShowInstallBanner] = useState(false);
+  const [showInstallGuide, setShowInstallGuide] = useState(false);
+  const [isIOS, setIsIOS] = useState(false);
+  const [isInstalled, setIsInstalled] = useState(false);
 
   useEffect(() => {
     const lastUid = localStorage.getItem("fq_last_uid");
@@ -1221,6 +1405,22 @@ export default function App() {
       if (u) setUser(u);
     }
     setAllUsers(listUsers());
+
+    // Detect iOS
+    const ios = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    setIsIOS(ios);
+
+    // Detect if already installed as PWA
+    const installed = window.matchMedia("(display-mode: standalone)").matches || window.navigator.standalone;
+    setIsInstalled(installed);
+
+    // Capture Android/Chrome install prompt
+    const handler = (e) => {
+      e.preventDefault();
+      setInstallPrompt(e);
+    };
+    window.addEventListener("beforeinstallprompt", handler);
+    return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
   const save = useCallback((updates) => {
@@ -1275,6 +1475,10 @@ export default function App() {
       completedWorkouts: { ...user.completedWorkouts, [today]: done },
     });
     if (done && newRank.name !== prevRank.name) setLevelUpRank(newRank);
+    // Trigger install banner after first workout — good engagement moment
+    if (done && !isInstalled && !localStorage.getItem("fq_install_dismissed")) {
+      setTimeout(() => setShowInstallBanner(true), 1500);
+    }
   }
 
   function toggleHabit(id, xp) {
@@ -1303,6 +1507,111 @@ export default function App() {
           <div style={{ ...S.heading, fontSize: 42, color: "#FFD700" }}>RANK UP!</div>
           <div style={{ ...S.heading, fontSize: 24, color: levelUpRank.color }}>{levelUpRank.name}</div>
           <div style={{ fontSize: 13, color: "#555", marginTop: 8 }}>tap to continue</div>
+        </div>
+      )}
+
+      {/* ── INSTALL BANNER ── */}
+      {showInstallBanner && !isInstalled && (
+        <div style={{ position: "fixed", bottom: 0, left: 0, right: 0, zIndex: 150, maxWidth: 480, margin: "0 auto" }}>
+          <div style={{ background: "linear-gradient(135deg,#12121E,#1A1A2E)", borderTop: "1px solid #7B68EE55", borderRadius: "20px 20px 0 0", padding: "18px 20px 28px" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", marginBottom: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                <span style={{ fontSize: 28 }}>💪</span>
+                <div>
+                  <div style={{ ...S.heading, fontSize: 17, color: "#E8E8F0" }}>Add FitQuest to Home Screen</div>
+                  <div style={{ fontSize: 12, color: "#666", marginTop: 2 }}>Open it like an app, anytime</div>
+                </div>
+              </div>
+              <button onClick={() => { setShowInstallBanner(false); localStorage.setItem("fq_install_dismissed", "1"); }}
+                style={{ background: "none", border: "none", color: "#444", fontSize: 22, cursor: "pointer", padding: 0, lineHeight: 1 }}>×</button>
+            </div>
+            <div style={{ display: "flex", gap: 10 }}>
+              {installPrompt ? (
+                <button onClick={async () => {
+                  installPrompt.prompt();
+                  const { outcome } = await installPrompt.userChoice;
+                  if (outcome === "accepted") { setIsInstalled(true); }
+                  setShowInstallBanner(false);
+                  localStorage.setItem("fq_install_dismissed", "1");
+                }} style={S.btn("linear-gradient(135deg,#7B68EE,#5A4FCF)")}>
+                  📲 Install Now
+                </button>
+              ) : (
+                <button onClick={() => { setShowInstallBanner(false); setShowInstallGuide(true); }}
+                  style={S.btn("linear-gradient(135deg,#7B68EE,#5A4FCF)")}>
+                  📲 Show Me How
+                </button>
+              )}
+              <button onClick={() => { setShowInstallBanner(false); localStorage.setItem("fq_install_dismissed", "1"); }}
+                style={{ ...S.btn("#1A1A2A", "#666"), flex: "0 0 100px" }}>
+                Not Now
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── INSTALL GUIDE MODAL ── */}
+      {showInstallGuide && (
+        <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.92)", zIndex: 200, display: "flex", alignItems: "flex-end" }}>
+          <div style={{ background: "#111118", borderRadius: "20px 20px 0 0", width: "100%", maxWidth: 480, margin: "0 auto", padding: "24px 20px 40px", border: "1px solid #1E1E2E" }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+              <div style={{ ...S.heading, fontSize: 22 }}>📲 Add to Home Screen</div>
+              <button onClick={() => { setShowInstallGuide(false); localStorage.setItem("fq_install_dismissed", "1"); }}
+                style={{ background: "none", border: "none", color: "#444", fontSize: 24, cursor: "pointer" }}>×</button>
+            </div>
+
+            {isIOS ? (
+              // iPhone instructions
+              <div style={S.col}>
+                <div style={{ fontSize: 13, color: "#666", marginBottom: 4 }}>Follow these steps in Safari:</div>
+                {[
+                  { step: "1", icon: "⬆️", text: "Tap the Share button at the bottom of Safari (the box with an arrow pointing up)" },
+                  { step: "2", icon: "📋", text: 'Scroll down in the share menu and tap "Add to Home Screen"' },
+                  { step: "3", icon: "✅", text: 'Tap "Add" in the top right corner' },
+                  { step: "4", icon: "🏠", text: "FitQuest will appear on your home screen like a real app!" },
+                ].map(s => (
+                  <div key={s.step} style={{ display: "flex", gap: 14, padding: "12px 14px", background: "#1A1A2A", borderRadius: 12, alignItems: "flex-start" }}>
+                    <span style={{ fontSize: 24, flexShrink: 0 }}>{s.icon}</span>
+                    <div>
+                      <div style={{ fontSize: 11, color: "#555", letterSpacing: 1, marginBottom: 3 }}>STEP {s.step}</div>
+                      <div style={{ fontSize: 14, color: "#C0C0D8", lineHeight: 1.5 }}>{s.text}</div>
+                    </div>
+                  </div>
+                ))}
+                <div style={{ padding: "10px 14px", background: "#0F1020", borderRadius: 10, fontSize: 12, color: "#555", lineHeight: 1.6 }}>
+                  💡 Make sure you are using Safari — Chrome on iPhone does not support this yet.
+                </div>
+              </div>
+            ) : (
+              // Android instructions
+              <div style={S.col}>
+                <div style={{ fontSize: 13, color: "#666", marginBottom: 4 }}>Follow these steps in Chrome:</div>
+                {[
+                  { step: "1", icon: "⋮", text: 'Tap the three dots menu (⋮) in the top right corner of Chrome' },
+                  { step: "2", icon: "📲", text: 'Tap "Add to Home screen" or "Install app"' },
+                  { step: "3", icon: "✅", text: 'Tap "Add" to confirm' },
+                  { step: "4", icon: "🏠", text: "FitQuest will appear on your home screen like a real app!" },
+                ].map(s => (
+                  <div key={s.step} style={{ display: "flex", gap: 14, padding: "12px 14px", background: "#1A1A2A", borderRadius: 12, alignItems: "flex-start" }}>
+                    <span style={{ fontSize: 24, flexShrink: 0 }}>{s.icon}</span>
+                    <div>
+                      <div style={{ fontSize: 11, color: "#555", letterSpacing: 1, marginBottom: 3 }}>STEP {s.step}</div>
+                      <div style={{ fontSize: 14, color: "#C0C0D8", lineHeight: 1.5 }}>{s.text}</div>
+                    </div>
+                  </div>
+                ))}
+                <div style={{ padding: "10px 14px", background: "#0F1020", borderRadius: 10, fontSize: 12, color: "#555", lineHeight: 1.6 }}>
+                  💡 Make sure you are using Chrome — some other browsers may not support this.
+                </div>
+              </div>
+            )}
+
+            <button onClick={() => { setShowInstallGuide(false); localStorage.setItem("fq_install_dismissed", "1"); }}
+              style={{ ...S.btn("linear-gradient(135deg,#7B68EE,#5A4FCF)"), marginTop: 20 }}>
+              Got it!
+            </button>
+          </div>
         </div>
       )}
 
