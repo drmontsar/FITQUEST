@@ -403,6 +403,139 @@ function MealTracker({ user, save, rank }) {
   );
 }
 
+// ─── Progress Photos Component ────────────────────────────────────────────────
+
+function ProgressPhotos({ user, save, rank }) {
+  const [selectedView, setSelectedView] = useState("front");
+  const photos = user.progressPhotos || [];
+
+  const VIEWS = ["front", "side", "back"];
+  const VIEW_LABELS = { front: "Front", side: "Side", back: "Back" };
+
+  function handleUpload(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      const entry = {
+        id: Date.now(),
+        date: new Date().toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }),
+        dateRaw: new Date().toISOString().split("T")[0],
+        view: selectedView,
+        img: ev.target.result,
+        weight: user.weightLog?.slice(-1)[0]?.weight || user.startWeight,
+      };
+      save({ progressPhotos: [...photos, entry] });
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function deletePhoto(id) {
+    save({ progressPhotos: photos.filter(p => p.id !== id) });
+  }
+
+  const filtered = photos.filter(p => p.view === selectedView);
+  const first = filtered[0];
+  const latest = filtered.length > 1 ? filtered[filtered.length - 1] : null;
+
+  return (
+    <div style={S.col}>
+
+      {/* Header card */}
+      <div style={S.card}>
+        <div style={{ ...S.heading, fontSize: 18, marginBottom: 6 }}>📸 Progress Photos</div>
+        <div style={{ fontSize: 13, color: "#666" }}>Track your visual transformation week by week. Photos stay private on your device.</div>
+      </div>
+
+      {/* View selector */}
+      <div style={{ display: "flex", gap: 8 }}>
+        {VIEWS.map(v => (
+          <button
+            key={v}
+            onClick={() => setSelectedView(v)}
+            style={{ flex: 1, padding: "10px 0", borderRadius: 12, border: "none", fontSize: 13, fontWeight: 700, cursor: "pointer", background: selectedView === v ? rank.color : "#1A1A2A", color: selectedView === v ? "#000" : "#666", fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, textTransform: "uppercase", transition: "all 0.2s" }}
+          >
+            {VIEW_LABELS[v]}
+          </button>
+        ))}
+      </div>
+
+      {/* Upload button */}
+      <label style={{ display: "block", cursor: "pointer" }}>
+        <input type="file" accept="image/*" capture="environment" onChange={handleUpload} style={{ display: "none" }} />
+        <div style={{ ...S.btn(`linear-gradient(135deg,${rank.color},${rank.color}BB)`), display: "block", textAlign: "center", padding: "13px 20px", borderRadius: 12, fontSize: 14, fontWeight: 700, fontFamily: "'Barlow Condensed', sans-serif", letterSpacing: 1, textTransform: "uppercase", color: "#fff" }}>
+          📷 Add {VIEW_LABELS[selectedView]} Photo
+        </div>
+      </label>
+
+      {/* Before / After comparison */}
+      {first && latest && (
+        <div style={S.card}>
+          <div style={{ ...S.heading, fontSize: 16, marginBottom: 12 }}>Before vs Now</div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+            {[{ label: "Before", photo: first }, { label: "Now", photo: latest }].map(({ label, photo }) => (
+              <div key={label}>
+                <div style={{ fontSize: 11, color: "#555", letterSpacing: 1, textTransform: "uppercase", marginBottom: 6, textAlign: "center" }}>{label}</div>
+                <img src={photo.img} alt={label} style={{ width: "100%", aspectRatio: "3/4", objectFit: "cover", borderRadius: 10, display: "block" }} />
+                <div style={{ fontSize: 11, color: "#666", textAlign: "center", marginTop: 5 }}>{photo.date}</div>
+                <div style={{ fontSize: 12, color: rank.color, textAlign: "center", fontWeight: 700 }}>{photo.weight} kg</div>
+              </div>
+            ))}
+          </div>
+          {first.weight && latest.weight && (
+            <div style={{ marginTop: 12, padding: "10px 14px", background: "#0F1A0F", borderRadius: 10, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+              <span style={{ fontSize: 13, color: "#666" }}>Change in this view</span>
+              <span style={{ ...S.heading, fontSize: 18, color: "#2ECC71" }}>−{Math.max(0, first.weight - latest.weight).toFixed(1)} kg 📉</span>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Photo timeline */}
+      {filtered.length > 0 ? (
+        <div style={S.card}>
+          <div style={{ ...S.heading, fontSize: 16, marginBottom: 12 }}>
+            {VIEW_LABELS[selectedView]} Timeline · {filtered.length} photo{filtered.length > 1 ? "s" : ""}
+          </div>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 8 }}>
+            {filtered.slice().reverse().map((photo) => (
+              <div key={photo.id} style={{ position: "relative" }}>
+                <img src={photo.img} alt={photo.date} style={{ width: "100%", aspectRatio: "3/4", objectFit: "cover", borderRadius: 8, display: "block" }} />
+                <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, background: "linear-gradient(transparent,rgba(0,0,0,0.85))", borderRadius: "0 0 8px 8px", padding: "12px 6px 5px" }}>
+                  <div style={{ fontSize: 10, color: "#ccc", textAlign: "center" }}>{photo.date}</div>
+                  <div style={{ fontSize: 11, color: rank.color, textAlign: "center", fontWeight: 700 }}>{photo.weight}kg</div>
+                </div>
+                <button
+                  onClick={() => deletePhoto(photo.id)}
+                  style={{ position: "absolute", top: 4, right: 4, background: "rgba(0,0,0,0.7)", border: "none", color: "#E84040", borderRadius: "50%", width: 22, height: 22, fontSize: 14, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", lineHeight: 1 }}
+                >
+                  ×
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div style={{ ...S.card, textAlign: "center", padding: "40px 20px" }}>
+          <div style={{ fontSize: 48, marginBottom: 10 }}>📷</div>
+          <div style={{ fontSize: 15, color: "#555", marginBottom: 6 }}>No {VIEW_LABELS[selectedView].toLowerCase()} photos yet</div>
+          <div style={{ fontSize: 12, color: "#333" }}>Add your first photo to start tracking your transformation</div>
+        </div>
+      )}
+
+      {/* Tips */}
+      <div style={{ ...S.card, background: "#0F0F1A" }}>
+        <div style={{ ...S.heading, fontSize: 14, marginBottom: 10, color: "#888" }}>📌 Tips for consistent photos</div>
+        {["Same time of day — morning is best", "Same lighting — near a window", "Same pose each time", "Weekly is enough — not daily"].map((tip, i) => (
+          <div key={i} style={{ fontSize: 12, color: "#555", padding: "4px 0", borderBottom: i < 3 ? "1px solid #1A1A2A" : "none" }}>
+            · {tip}
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
 // ─── Onboarding ───────────────────────────────────────────────────────────────
 
 function Onboarding({ onComplete }) {
@@ -645,7 +778,7 @@ export default function App() {
 
         {/* Tabs */}
         <div style={{ display: "flex" }}>
-          {[["today","📅 Today"],["meals","🍽️ Meals"],["plan","💪 Plan"],["stats","📊 Stats"]].map(([t, label]) => (
+          {[["today","📅 Today"],["meals","🍽️ Meals"],["photos","📸 Photos"],["plan","💪 Plan"],["stats","📊 Stats"]].map(([t, label]) => (
             <button key={t} onClick={() => setTab(t)} style={{ flex: 1, padding: "9px 0", background: "none", border: "none", borderBottom: tab === t ? `2px solid ${rank.color}` : "2px solid transparent", color: tab === t ? "#E8E8F0" : "#444", fontSize: 11, fontWeight: 700, cursor: "pointer", letterSpacing: 1, textTransform: "uppercase", transition: "all 0.2s", fontFamily: "'Barlow Condensed', sans-serif" }}>
               {label}
             </button>
@@ -760,6 +893,11 @@ export default function App() {
         {/* ── MEALS ── */}
         {tab === "meals" && (
           <MealTracker user={user} save={save} rank={rank} />
+        )}
+
+        {/* ── PHOTOS ── */}
+        {tab === "photos" && (
+          <ProgressPhotos user={user} save={save} rank={rank} />
         )}
 
         {/* ── PLAN ── */}
